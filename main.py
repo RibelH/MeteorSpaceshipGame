@@ -38,17 +38,18 @@ class player(object):
 
 class projectile(object):
 
-    def __init__(self, x, y, radius, color):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.radius = radius
-        self.color = color
+        self.width = 12
+        self.height = 12
+
         self.vel = -8
-        #self.projectile = pygame.image.load("projectiles/bullet.png", )
+        self.projectile = pygame.image.load("projectiles/Fireball.png")
 
     def draw(self, win):
-        #win.blit(self.projectile, (self.x, self.y)
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+        win.blit(self.projectile, (self.x, self.y))
+
 
 
 
@@ -78,7 +79,7 @@ while run:
     pygame.time.delay(15)
     if shootLoop > 0:
         shootLoop += 1
-    if shootLoop > 3:
+    if shootLoop > 5:
         shootLoop = 0
 
     #Checking for events
@@ -101,7 +102,7 @@ while run:
     #Checking for Key inputs
     if keys[pygame.K_SPACE] and shootLoop == 0:
         if len(bullets) < 100:
-            bullets.append(projectile(round(ship.x + ship.width//2), round(ship.y + ship.height//4) , 6, (255,255,255)))
+            bullets.append(projectile(round(ship.x + ship.width//2 - 6), round(ship.y + ship.height//4) ))
         shootLoop = 1
 
     if keys[pygame.K_LEFT]:
