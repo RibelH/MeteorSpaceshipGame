@@ -144,6 +144,8 @@ run = True
 score = 0
 BG_current = 1
 while run:
+
+    #Checks for current number of enemies : 4 enemies is MAX
     if len(enemies) < 4 and meteoLoop == 0:
         enemies.append(Enemy(randint(50, 450), randint(50, 150), 64, 64))
         meteoLoop += 1
@@ -169,6 +171,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
+    #Checking for Projectile-Enemy Collision
     for bullet in bullets:
         for enemy in enemies:
             if bullet.y + 5  < enemy.hitbox[1] + enemy.height and bullet.y + bullet.height > enemy.hitbox[1]:
@@ -177,6 +180,7 @@ while run:
                     bullets_removed.add(bullet)
                     enemy.hit()
 
+        #Bullet Travelanimation and tracking
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
         else:
@@ -211,10 +215,7 @@ while run:
         if ship.y > 0:
             ship.y -= ship.vel
 
-
-
-
-    RedrawGameWindow()
+    #Scrolling BackgroundLoop
     if BG_y < 500:
         BG_y += 1
     else:
@@ -224,6 +225,11 @@ while run:
         else:
             BG_current = 1
             BG_y = 0
+
+
+    RedrawGameWindow()
+
+
 
 
 
