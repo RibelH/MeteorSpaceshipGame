@@ -1,5 +1,13 @@
 import pygame
+from random import randint
 pygame.init()
+
+
+#TODO: Moving BG
+#TODO: Score
+#TODO: Animations
+#TODO: add MENU
+#TODO: improve enemy spawning
 
 
 #Create Window
@@ -10,6 +18,7 @@ win = pygame.display.set_mode((screen_w,screen_h))
 
 #Setting the Window Caption
 pygame.display.set_caption("First Game")
+BG = pygame.image.load("envi/SpaceBG.png")
 
 #Player Position
 
@@ -24,6 +33,45 @@ player = pygame.image.load("char/PurpleSpaceship3.png")
 
 #OBJECT CLASSES
 
+class Enemy(object):
+
+
+    def __init__(self, x, y, width, height):
+        self.meteor= [pygame.image.load("enemy/MeteoEnemy.png"), pygame.image.load("enemy/MeteoEnemy2.png"),
+                      pygame.image.load("enemy/MeteoEnemy3.png")]
+        self.x = x
+        self.y = y
+        self.img_size = randint(0,2)
+        self.vel = 4
+        if self.img_size == 1:
+            self.width = 64
+            self.height = 64
+
+        elif self.img_size ==2:
+            self.width = 48
+            self.height = 48
+
+        else:
+            self.width = 32
+            self.height = 32
+
+
+        self.hitbox = (self.x, self.y, self.width, self.height)
+    def draw(self, win):
+        win.blit(self.meteor[self.img_size], (self.x, self.y))
+        self.hitbox = (self.x, self.y, self.width, self.height)
+        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+    def move(self):
+        pass
+    def hit(self):
+        global enemies, bullets
+        enemies = [enemy for enemy in enemies if enemy not in enemies_removed]
+        bullets = [bullet for bullet in bullets if bullet not in bullets_removed]
+
+
+
+
+
 class player(object):
     def __init__(self, x, y, width, height):
         self.x = x
@@ -32,9 +80,12 @@ class player(object):
         self.height = height
         self.vel = 4
         self.player = pygame.image.load("char/PurpleSpaceship3.png")
+        self.hitbox = (self.x , self.y, width, height)
 
     def draw(self,win):
         win.blit(self.player, (self.x, self.y))
+        self.hitbox = (self.x, self.y, self.width, self.height)
+        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
 class projectile(object):
 
@@ -53,34 +104,54 @@ class projectile(object):
 
 
 
+
 def RedrawGameWindow():
     #ReDraw Background
 
-    win.fill((0,0,0)) #win.blit(BG, (x, y) ) for image BG
+    win.blit(BG, (0, 0) )
 
     #Draw Player
     #pygame.draw.rect(win, (255,255,255), (x, y, width, height))
     ship.draw(win)
 
+    for enemy in enemies:
+        enemy.draw(win)
+
     for bullet in bullets:
         bullet.draw(win)
+
 
     #Updating Window
     pygame.display.update()
 
 
 #Loop for Game
+enemies_removed = set()
+bullets_removed = set()
+enemies = []
 ship = player(300, 410, 64, 64)
 shootLoop = 0
+meteoLoop = 0
 bullets = []
 run = True
 while run:
-    #Delay for Loop
+    if len(enemies) < 4 and meteoLoop == 0:
+        enemies.append(Enemy(randint(50, 450), randint(50, 150), 64, 64))
+        meteoLoop += 1
+    #Delay for Shots
     pygame.time.delay(15)
     if shootLoop > 0:
         shootLoop += 1
     if shootLoop > 5:
         shootLoop = 0
+
+    #Delay for Enemies
+    if meteoLoop > 0:
+        meteoLoop += 1
+    if meteoLoop >20:
+        meteoLoop = 0
+
+
 
     #Checking for events
     for event in pygame.event.get():
@@ -90,6 +161,13 @@ while run:
             run = False
 
     for bullet in bullets:
+        for enemy in enemies:
+            if bullet.y + 5  < enemy.hitbox[1] + enemy.height and bullet.y + bullet.height > enemy.hitbox[1]:
+                if bullet.x - bullet.width < enemy.hitbox[0] + enemy.width and bullet.x + bullet.width > enemy.hitbox[0]:
+                    enemies_removed.add(enemy)
+                    bullets_removed.add(bullet)
+        enemy.hit()
+
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
         else:
