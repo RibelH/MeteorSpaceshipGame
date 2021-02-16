@@ -3,8 +3,6 @@ from random import randint
 pygame.init()
 
 
-#TODO: Moving BG
-#TODO: Score
 #TODO: Animations
 #TODO: add MENU
 #TODO: improve enemy spawning
@@ -18,13 +16,13 @@ win = pygame.display.set_mode((screen_w,screen_h))
 
 #Setting the Window Caption
 pygame.display.set_caption("First Game")
-BG = pygame.image.load("envi/SpaceBG.png")
+BG = (pygame.image.load("envi/SpaceBG.png").convert(),pygame.image.load("envi/SpaceBG2.png").convert_alpha())
 
 #Player Position
 
 
 #Player size
-player = pygame.image.load("char/PurpleSpaceship3.png")
+
 
 
 #Player speed/directional change
@@ -37,8 +35,8 @@ class Enemy(object):
 
 
     def __init__(self, x, y, width, height):
-        self.meteor= [pygame.image.load("enemy/MeteoEnemy.png"), pygame.image.load("enemy/MeteoEnemy2.png"),
-                      pygame.image.load("enemy/MeteoEnemy3.png")]
+        self.meteor= [pygame.image.load("enemy/MeteoEnemy.png").convert_alpha(), pygame.image.load("enemy/MeteoEnemy2.png").convert_alpha(),
+                      pygame.image.load("enemy/MeteoEnemy3.png").convert_alpha()]
         self.x = x
         self.y = y
         self.img_size = randint(0,2)
@@ -64,9 +62,10 @@ class Enemy(object):
     def move(self):
         pass
     def hit(self):
-        global enemies, bullets
+        global enemies, bullets, score
         enemies = [enemy for enemy in enemies if enemy not in enemies_removed]
         bullets = [bullet for bullet in bullets if bullet not in bullets_removed]
+        score +=1
 
 
 
@@ -79,7 +78,7 @@ class player(object):
         self.width = width
         self.height = height
         self.vel = 4
-        self.player = pygame.image.load("char/PurpleSpaceship3.png")
+        self.player = pygame.image.load("char/PurpleSpaceship3.png").convert_alpha()
         self.hitbox = (self.x , self.y, width, height)
 
     def draw(self,win):
@@ -96,7 +95,7 @@ class projectile(object):
         self.height = 12
 
         self.vel = -8
-        self.projectile = pygame.image.load("projectiles/Fireball.png")
+        self.projectile = pygame.image.load("projectiles/Fireball.png").convert_alpha()
 
     def draw(self, win):
         win.blit(self.projectile, (self.x, self.y))
@@ -107,8 +106,14 @@ class projectile(object):
 
 def RedrawGameWindow():
     #ReDraw Background
-
-    win.blit(BG, (0, 0) )
+    if BG_current == 1:
+        win.blit(BG[1], (0, BG_y - screen_h))
+        win.blit(BG[0], (0, BG_y) )
+    else:
+        win.blit(BG[1], (0, BG_y ))
+        win.blit(BG[0], (0, BG_y- screen_h))
+    text = font.render("SCORE: " + str(score), 1, (255,255,255))
+    win.blit(text, (210, 10))
 
     #Draw Player
     #pygame.draw.rect(win, (255,255,255), (x, y, width, height))
@@ -126,6 +131,8 @@ def RedrawGameWindow():
 
 
 #Loop for Game
+BG_y = 0
+font = pygame.font.SysFont("comicsans", 30, True, True)
 enemies_removed = set()
 bullets_removed = set()
 enemies = []
@@ -134,6 +141,8 @@ shootLoop = 0
 meteoLoop = 0
 bullets = []
 run = True
+score = 0
+BG_current = 1
 while run:
     if len(enemies) < 4 and meteoLoop == 0:
         enemies.append(Enemy(randint(50, 450), randint(50, 150), 64, 64))
@@ -166,7 +175,7 @@ while run:
                 if bullet.x - bullet.width < enemy.hitbox[0] + enemy.width and bullet.x + bullet.width > enemy.hitbox[0]:
                     enemies_removed.add(enemy)
                     bullets_removed.add(bullet)
-        enemy.hit()
+                    enemy.hit()
 
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
@@ -180,7 +189,9 @@ while run:
     #Checking for Key inputs
     if keys[pygame.K_SPACE] and shootLoop == 0:
         if len(bullets) < 100:
-            bullets.append(projectile(round(ship.x + ship.width//2 - 6), round(ship.y + ship.height//4) ))
+            bullets.append(projectile(round(ship.x + ship.width//2 - 6), round(ship.y + ship.height//4)))
+            #bullets.append(projectile(round(ship.x + ship.width//2 + 6), round(ship.y + ship.height//4) ))
+            #bullets.append(projectile(round(ship.x + ship.width//2 - 12), round(ship.y + ship.height//4)))
         shootLoop = 1
 
     if keys[pygame.K_LEFT]:
@@ -204,6 +215,16 @@ while run:
 
 
     RedrawGameWindow()
+    if BG_y < 500:
+        BG_y += 1
+    else:
+        if BG_current == 1:
+            BG_current = 2
+            BG_y = 0
+        else:
+            BG_current = 1
+            BG_y = 0
+
 
 
 
