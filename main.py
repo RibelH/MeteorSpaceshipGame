@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 from random import randint
 pygame.init()
@@ -17,7 +19,7 @@ win = pygame.display.set_mode((screen_w,screen_h))
 #Setting the Window Caption
 pygame.display.set_caption("First Game")
 BG = (pygame.image.load("envi/SpaceBG.png").convert(),pygame.image.load("envi/SpaceBG2.png").convert_alpha())
-
+mainClock = pygame.time.Clock()
 #Player Position
 
 
@@ -40,7 +42,7 @@ class Enemy(object):
         self.x = x
         self.y = y
         self.img_size = randint(0,2)
-        self.vel = 4
+        self.vel = 2
         if self.img_size == 1:
             self.width = 64
             self.height = 64
@@ -77,6 +79,7 @@ class player(object):
         self.y = y
         self.width = width
         self.height = height
+        self.health = 3
         self.vel = 4
         self.player = pygame.image.load("char/PurpleSpaceship3.png").convert_alpha()
         self.hitbox = (self.x , self.y, width, height)
@@ -85,6 +88,9 @@ class player(object):
         win.blit(self.player, (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
         #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+
+    def hit(self):
+        self.health -= 1
 
 class projectile(object):
 
@@ -102,6 +108,40 @@ class projectile(object):
 
 
 
+#Ship-Particles
+class particlePrinciple:
+    def __init__(self):
+        self.particles = []
+        self.particle_color = (pygame.Color("Red"),pygame.Color("Orange"), pygame.Color("Yellow"), pygame.Color("White"))
+
+    def emit(self):   #ship_width, ship_height
+        if self.particles:
+            self.delete_particles()
+            for particle in self.particles:
+                particle[0][1] += particle[2]#move
+                particle[1] -= 0.2 #shrink
+                if particle[1]>5:
+                    pygame.draw.circle(win, self.particle_color[0], particle[0], int(particle[1]))#draw circle around particle
+                elif particle[1]<=5 and particle[1] >=4:
+                    pygame.draw.circle(win, self.particle_color[1], particle[0], int(particle[1]))
+                elif particle[1]< 4 and particle[1] >=3:
+                    pygame.draw.circle(win, self.particle_color[2], particle[0], int(particle[1]))
+                elif particle[1]<3:
+                    pygame.draw.circle(win, self.particle_color[3], particle[0], int(particle[1]))
+
+
+    def add_particles(self, ship_x, ship_y):
+        pos_x = ship_x
+        pos_y = ship_y
+        radius = 6
+        direction = 2
+        particle_circle = [[round(pos_x+64//2), round(pos_y + 64)], radius, direction] #(ship.x + ship.width//2 - 6), round(ship.y + ship.height//4)
+        self.particles.append(particle_circle)
+
+    def delete_particles(self):
+        particles_copy = [particle for particle in self.particles if particle[1] > 0]
+        self.particles = particles_copy
+
 
 
 def RedrawGameWindow():
@@ -113,15 +153,21 @@ def RedrawGameWindow():
         win.blit(BG[1], (0, BG_y ))
         win.blit(BG[0], (0, BG_y- screen_h))
     text = font.render("SCORE: " + str(score), 1, (255,255,255))
-    win.blit(text, (210, 10))
+
 
     #Draw Player
     #pygame.draw.rect(win, (255,255,255), (x, y, width, height))
     ship.draw(win)
+    particle1.emit()
 
     for enemy in enemies:
+        if enemy.y < 500:
+            enemy.y += enemy.vel
+        else:
+            enemies_removed.add(enemy)
+            enemy.hit()
         enemy.draw(win)
-
+    win.blit(text, (210, 10))
     for bullet in bullets:
         bullet.draw(win)
 
@@ -129,8 +175,62 @@ def RedrawGameWindow():
     #Updating Window
     pygame.display.update()
 
+def main_menu():
+    run = True
+    titlefont = pygame.font.SysFont("comicsans", 60,True)
+    startfont = pygame.font.SysFont("comicsans",40)
+    title = titlefont.render("METEO SHOWER", 1, (255, 255,255))
+    start = startfont.render("ENTER TO START",1, (255, 255, 255))
+    rect = start.get_rect()
+    while run:
+        mainClock.tick(60)
+        win.blit(BG[0],(0,0))
+        win.blit(title, (55, 150))
 
-#Loop for Game
+        win.blit(start,(130, 350))
+        pygame.draw.rect(start,(255, 255, 255), rect, 1, border_radius=4)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_RETURN]:
+            run = False
+
+
+
+
+
+        mainClock.tick(60)
+        pygame.display.update()
+
+def game_over():
+    run = True
+    endfont = pygame.font.SysFont("comicsans", 50, True, True)
+    end_text = endfont.render("GAME OVER", 1, (137,207,240))
+    while run:
+        mainClock.tick(60)
+        win.blit(end_text, (150, 200))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        pygame.display.update()
+
+
+
+
+
+
+PARTICLE_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(PARTICLE_EVENT, 60)
+
+#Important Variables and Objects
 BG_y = 0
 font = pygame.font.SysFont("comicsans", 30, True, True)
 enemies_removed = set()
@@ -143,14 +243,28 @@ bullets = []
 run = True
 score = 0
 BG_current = 1
+
+particle1 = particlePrinciple()
+
+
+main_menu()
+#MainLoop
 while run:
+
+    if ship.health == 0:
+        run = False
+
+    hit=False
+    #GameClock
+    mainClock.tick(60)
+
 
     #Checks for current number of enemies : 4 enemies is MAX
     if len(enemies) < 4 and meteoLoop == 0:
-        enemies.append(Enemy(randint(50, 450), randint(50, 150), 64, 64))
+        enemies.append(Enemy(randint(50, 450), 0, 64, 64))
         meteoLoop += 1
+
     #Delay for Shots
-    pygame.time.delay(15)
     if shootLoop > 0:
         shootLoop += 1
     if shootLoop > 5:
@@ -170,6 +284,8 @@ while run:
         #Quit event
         if event.type == pygame.QUIT:
             run = False
+        if event.type == PARTICLE_EVENT:
+            particle1.add_particles(ship.x,ship.y)
 
     #Checking for Projectile-Enemy Collision
     for bullet in bullets:
@@ -178,14 +294,24 @@ while run:
                 if bullet.x - bullet.width < enemy.hitbox[0] + enemy.width and bullet.x + bullet.width > enemy.hitbox[0]:
                     enemies_removed.add(enemy)
                     bullets_removed.add(bullet)
-                    enemy.hit()
+                    hit = True
+
+
 
         #Bullet Travelanimation and tracking
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
         else:
             bullets.pop(bullets.index(bullet))
-
+    for enemy in enemies:
+        if ship.hitbox[1] < enemy.hitbox[1] + ship.hitbox[3] and ship.hitbox[1] + ship.hitbox[3] > enemy.hitbox[1]:
+            if ship.hitbox[0] + ship.hitbox[2] > enemy.hitbox[0] and ship.hitbox[0] < enemy.hitbox[0] + enemy.hitbox[2]:
+                enemies_removed.add(enemy)
+                enemy.hit()
+                ship.hit()
+    if hit == True:
+        enemy.hit()
+        hit = False
 
     #Gets the state of ALL keys on the keyboard
     keys = pygame.key.get_pressed()
@@ -229,6 +355,7 @@ while run:
 
     RedrawGameWindow()
 
+game_over()
 
 
 
