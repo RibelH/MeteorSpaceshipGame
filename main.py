@@ -36,38 +36,52 @@ mainClock = pygame.time.Clock()
 class Enemy(object):
 
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y):
         self.meteor= [pygame.image.load("enemy/MeteoEnemy.png").convert_alpha(), pygame.image.load("enemy/MeteoEnemy2.png").convert_alpha(),
                       pygame.image.load("enemy/MeteoEnemy3.png").convert_alpha()]
         self.x = x
         self.y = y
         self.img_size = randint(0,2)
-        self.vel = 2
-        if self.img_size == 1:
+        self.health_list = [1, 2, 3]
+
+        if self.img_size == 2:
             self.width = 64
             self.height = 64
+            self.health = self.health_list[self.img_size]
+            self.vel = 1.3
 
-        elif self.img_size ==2:
+        elif self.img_size ==1:
             self.width = 48
             self.height = 48
+            self.health = self.health_list[self.img_size]
+            self.vel = 1.5
 
         else:
             self.width = 32
             self.height = 32
+            self.health = self.health_list[self.img_size]
+            self.vel = 1.7
 
 
         self.hitbox = (self.x, self.y, self.width, self.height)
     def draw(self, win):
         win.blit(self.meteor[self.img_size], (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+
     def move(self):
         pass
+
     def hit(self):
         global enemies, bullets, score
+        #self.health -= 1
         enemies = [enemy for enemy in enemies if enemy not in enemies_removed]
-        bullets = [bullet for bullet in bullets if bullet not in bullets_removed]
-        score +=1
+
+    def delete_enemy(self):
+        global enemies, bullets, score
+        enemies = [enemy for enemy in enemies if enemy not in enemies_removed]
+
+
 
 
 
@@ -87,7 +101,7 @@ class player(object):
     def draw(self,win):
         win.blit(self.player, (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
     def hit(self):
         self.health -= 1
@@ -105,6 +119,8 @@ class projectile(object):
 
     def draw(self, win):
         win.blit(self.projectile, (self.x, self.y))
+
+
 
 
 
@@ -167,6 +183,7 @@ def RedrawGameWindow():
             enemies_removed.add(enemy)
             enemy.hit()
         enemy.draw(win)
+
     win.blit(text, (210, 10))
     for bullet in bullets:
         bullet.draw(win)
@@ -208,6 +225,7 @@ def main_menu():
         pygame.display.update()
 
 def game_over():
+    global score, enemies
     run = True
     endfont = pygame.font.SysFont("comicsans", 50, True, True)
     end_text = endfont.render("GAME OVER", 1, (137,207,240))
@@ -219,8 +237,23 @@ def game_over():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_RETURN]:
+            run = False
+            ship.health = 3
+            score = 0
+            ship.y = 410
+            ship.x = 300
+            enemies = []
+
 
         pygame.display.update()
+
+
+def delete_bullets():
+    global bullets
+    bullets = [bullet for bullet in bullets if bullet not in bullets_removed]
 
 
 
@@ -251,8 +284,7 @@ main_menu()
 #MainLoop
 while run:
 
-    if ship.health == 0:
-        run = False
+
 
     hit=False
     #GameClock
@@ -261,7 +293,7 @@ while run:
 
     #Checks for current number of enemies : 4 enemies is MAX
     if len(enemies) < 4 and meteoLoop == 0:
-        enemies.append(Enemy(randint(50, 450), 0, 64, 64))
+        enemies.append(Enemy(randint(50, 450), -64))
         meteoLoop += 1
 
     #Delay for Shots
@@ -292,8 +324,12 @@ while run:
         for enemy in enemies:
             if bullet.y + 5  < enemy.hitbox[1] + enemy.height and bullet.y + bullet.height > enemy.hitbox[1]:
                 if bullet.x - bullet.width < enemy.hitbox[0] + enemy.width and bullet.x + bullet.width > enemy.hitbox[0]:
-                    enemies_removed.add(enemy)
+                    enemy.health -=1
+                    if enemy.health == 0:
+                        score += 1
+                        enemies_removed.add(enemy)
                     bullets_removed.add(bullet)
+                    delete_bullets()
                     hit = True
 
 
@@ -302,19 +338,31 @@ while run:
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
         else:
-            bullets.pop(bullets.index(bullet))
+            bullets_removed.add(bullet)
+            delete_bullets()
+
     for enemy in enemies:
-        if ship.hitbox[1] < enemy.hitbox[1] + ship.hitbox[3] and ship.hitbox[1] + ship.hitbox[3] > enemy.hitbox[1]:
-            if ship.hitbox[0] + ship.hitbox[2] > enemy.hitbox[0] and ship.hitbox[0] < enemy.hitbox[0] + enemy.hitbox[2]:
+
+        if ship.hitbox[1] < enemy.hitbox[1] + enemy.hitbox[3] and ship.hitbox[1] + ship.hitbox[3] > enemy.hitbox[1]: #(x, y, 64, 64)
+            if ship.hitbox[0] + ship.hitbox[2] > enemy.hitbox[0] and ship.hitbox[0] < enemy.hitbox[0] + enemy.hitbox[2]: #(x, y , 32, 32)
                 enemies_removed.add(enemy)
                 enemy.hit()
                 ship.hit()
-    if hit == True:
-        enemy.hit()
-        hit = False
+
+
+
+
+
+
+        if hit == True:
+            enemy.hit()
+
+            hit = False
 
     #Gets the state of ALL keys on the keyboard
     keys = pygame.key.get_pressed()
+
+
 
     #Checking for Key inputs
     if keys[pygame.K_SPACE] and shootLoop == 0:
@@ -351,11 +399,12 @@ while run:
         else:
             BG_current = 1
             BG_y = 0
-
+    if ship.health == 0:
+        game_over()
 
     RedrawGameWindow()
 
-game_over()
+
 
 
 
