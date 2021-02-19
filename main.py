@@ -18,16 +18,15 @@ win = pygame.display.set_mode((screen_w,screen_h))
 
 #Setting the Window Caption
 pygame.display.set_caption("First Game")
-BG = (pygame.image.load("envi/SpaceBG.png").convert(),pygame.image.load("envi/SpaceBG2.png").convert_alpha())
+BG = (pygame.image.load("envi/SpaceBG.png").convert_alpha(),
+      pygame.image.load("envi/SpaceBG2.png").convert_alpha())
+
+Hearts = (pygame.image.load("hud/Hearts0.png").convert_alpha(),
+          pygame.image.load("hud/Hearts1.png").convert_alpha(),
+          pygame.image.load("hud/Hearts2.png").convert_alpha(),
+          pygame.image.load("hud/Hearts3.png").convert_alpha() )
 mainClock = pygame.time.Clock()
-#Player Position
 
-
-#Player size
-
-
-
-#Player speed/directional change
 
 
 
@@ -37,7 +36,8 @@ class Enemy(object):
 
 
     def __init__(self, x, y):
-        self.meteor= [pygame.image.load("enemy/MeteoEnemy.png").convert_alpha(), pygame.image.load("enemy/MeteoEnemy2.png").convert_alpha(),
+        self.meteor= [pygame.image.load("enemy/MeteoEnemy.png").convert_alpha(),
+                      pygame.image.load("enemy/MeteoEnemy2.png").convert_alpha(),
                       pygame.image.load("enemy/MeteoEnemy3.png").convert_alpha()]
         self.x = x
         self.y = y
@@ -67,7 +67,7 @@ class Enemy(object):
     def draw(self, win):
         win.blit(self.meteor[self.img_size], (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
     def move(self):
         pass
@@ -101,7 +101,7 @@ class player(object):
     def draw(self,win):
         win.blit(self.player, (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        #pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
     def hit(self):
         self.health -= 1
@@ -128,7 +128,8 @@ class projectile(object):
 class particlePrinciple:
     def __init__(self):
         self.particles = []
-        self.particle_color = (pygame.Color("Red"),pygame.Color("Orange"), pygame.Color("Yellow"), pygame.Color("White"))
+        self.particle_color = (pygame.Color("Red"),pygame.Color("Orange"),
+                               pygame.Color("Yellow"), pygame.Color("White"))
 
     def emit(self):   #ship_width, ship_height
         if self.particles:
@@ -169,6 +170,14 @@ def RedrawGameWindow():
         win.blit(BG[1], (0, BG_y ))
         win.blit(BG[0], (0, BG_y- screen_h))
     text = font.render("SCORE: " + str(score), 1, (255,255,255))
+
+
+    if ship.health == 3:
+        win.blit(Hearts[3], (5, 6))
+    elif ship.health == 2:
+        win.blit(Hearts[2], (5, 6))
+    elif ship.health == 1:
+        win.blit(Hearts[1], (5, 6))
 
     #Draw Player
     #pygame.draw.rect(win, (255,255,255), (x, y, width, height))
@@ -392,6 +401,7 @@ while run:
             BG_current = 1
             BG_y = 0
     if ship.health == 0:
+        win.blit(Hearts[0], (5, 6))
         game_over()
 
     RedrawGameWindow()
