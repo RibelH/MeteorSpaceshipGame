@@ -158,7 +158,7 @@ class particlePrinciple:
         particles_copy = [particle for particle in self.particles if particle[1] > 0]
         self.particles = particles_copy
 
-
+#-------------------------- FUNCTIONS FOR FAST USE -----------------------------------------#
 
 def RedrawGameWindow():
     #ReDraw Background
@@ -169,7 +169,6 @@ def RedrawGameWindow():
         win.blit(BG[1], (0, BG_y ))
         win.blit(BG[0], (0, BG_y- screen_h))
     text = font.render("SCORE: " + str(score), 1, (255,255,255))
-
 
     #Draw Player
     #pygame.draw.rect(win, (255,255,255), (x, y, width, height))
@@ -257,7 +256,7 @@ def delete_bullets():
 
 
 
-
+#--------------------------------------------------------------------------------------------#
 
 
 PARTICLE_EVENT = pygame.USEREVENT + 1
@@ -280,16 +279,17 @@ BG_current = 1
 particle1 = particlePrinciple()
 
 
+
+#menu Loop
 main_menu()
 #MainLoop
 while run:
 
-
-
+    #register Hit
     hit=False
+
     #GameClock
     mainClock.tick(60)
-
 
     #Checks for current number of enemies : 4 enemies is MAX
     if len(enemies) < 4 and meteoLoop == 0:
@@ -308,14 +308,13 @@ while run:
     if meteoLoop >20:
         meteoLoop = 0
 
-
-
     #Checking for events
     for event in pygame.event.get():
 
         #Quit event
         if event.type == pygame.QUIT:
             run = False
+
         if event.type == PARTICLE_EVENT:
             particle1.add_particles(ship.x,ship.y)
 
@@ -332,11 +331,10 @@ while run:
                     delete_bullets()
                     hit = True
 
-
-
         #Bullet Travelanimation and tracking
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
+
         else:
             bullets_removed.add(bullet)
             delete_bullets()
@@ -349,14 +347,8 @@ while run:
                 enemy.hit()
                 ship.hit()
 
-
-
-
-
-
         if hit == True:
             enemy.hit()
-
             hit = False
 
     #Gets the state of ALL keys on the keyboard
@@ -403,13 +395,6 @@ while run:
         game_over()
 
     RedrawGameWindow()
-
-
-
-
-
-
-
 
 
 pygame.quit()
