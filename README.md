@@ -21,5 +21,11 @@ Watched some pygame and pixelart videos and over the course of a 3 days this is 
 
   * ![Image of small Meteor: 64x64](/enemy/MeteoEnemy3.png)
 
-* **Screenshots** :
-    * ![Image of Ingame Screenshot: 500x500](/screenshot/StartScreen.png) ![Image of Ingame Screenshot: 500x500](/screenshot/InGameScreen.png) ![Image of Ingame Screenshot: 500x500](/screenshot/GameOverScreen.png)
+* **StartScreen** :
+    * ![Image of Ingame Screenshot: 500x500](/screenshot/StartScreen.png) 
+
+* **Gameplay Screen** :
+    * ![Image of Ingame Screenshot: 500x500](/screenshot/InGameScreen.png) 
+ 
+ * **GameOver Screen** :
+    * ![Image of Ingame Screenshot: 500x500](/screenshot/GameOverScreen.png)
