@@ -215,6 +215,7 @@ def main_menu():
         win.blit(start,(130, 350))
         pygame.draw.rect(start,(255, 255, 255), rect, 1, border_radius=4)
 
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -261,6 +262,7 @@ def game_over():
 
 def delete_bullets():
     global bullets
+    #Updates current bullet list
     bullets = [bullet for bullet in bullets if bullet not in bullets_removed]
 
 
@@ -305,13 +307,13 @@ while run:
         enemies.append(Enemy(randint(50, 450), -64))
         meteoLoop += 1
 
-    #Delay for Shots
+    #Spawn-Delay for Shots
     if shootLoop > 0:
         shootLoop += 1
     if shootLoop > 5:
         shootLoop = 0
 
-    #Delay for Enemies
+    #Spawn-Delay for Enemies
     if meteoLoop > 0:
         meteoLoop += 1
     if meteoLoop >20:
@@ -323,11 +325,11 @@ while run:
         #Quit event
         if event.type == pygame.QUIT:
             run = False
-
+        #Particle Event (adds particles to particle1.particles[])
         if event.type == PARTICLE_EVENT:
             particle1.add_particles(ship.x,ship.y)
 
-    #Checking for Projectile-Enemy Collision
+    #Checking for projectile & enemy collision
     for bullet in bullets:
         for enemy in enemies:
             if bullet.y + 5  < enemy.hitbox[1] + enemy.height and bullet.y + bullet.height > enemy.hitbox[1]:
@@ -340,7 +342,7 @@ while run:
                     delete_bullets()
                     hit = True
 
-        #Bullet Travelanimation and tracking
+        #Bullet travelanimation and tracking in boundaries
         if bullet.y > 0 and bullet.y < 500:
             bullet.y += bullet.vel
 
@@ -348,6 +350,7 @@ while run:
             bullets_removed.add(bullet)
             delete_bullets()
 
+    #Checking for enemy & player collision
     for enemy in enemies:
 
         if ship.hitbox[1] < enemy.hitbox[1] + enemy.hitbox[3] and ship.hitbox[1] + ship.hitbox[3] > enemy.hitbox[1]: #(x, y, 64, 64)
@@ -373,6 +376,7 @@ while run:
             #bullets.append(projectile(round(ship.x + ship.width//2 - 12), round(ship.y + ship.height//4)))
         shootLoop = 1
 
+    #Main Controls
     if keys[pygame.K_LEFT]:
         #Checking for Left-Border
         if ship.x > 0:
@@ -400,10 +404,13 @@ while run:
         else:
             BG_current = 1
             BG_y = 0
+
+    #Checking & Updating UI according to player-health (ship.health)
     if ship.health == 0:
         win.blit(Hearts[0], (5, 6))
         game_over()
 
+    #Redrawing
     RedrawGameWindow()
 
 
